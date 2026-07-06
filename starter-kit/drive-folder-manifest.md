@@ -1,22 +1,21 @@
 # Drive Folder Manifest — "Bed Ministry Starter Kit"
 
-## Publishing the GitHub repo (founder action)
+## Public GitHub repo — PUBLISHED 2026-07-05
 
-The public repo must be created by the founder (a human picks the account and
-visibility). One-time steps:
+Canonical source: <https://github.com/Glitterphobe/bed-ministry-starter-kit>
+(public, fresh history — initial release commit only; this private repo's
+history is never pushed there because old commits contain unaudited docx
+screenshots).
 
-1. Create `bed-ministry-starter-kit` on github.com (public, no README/license
-   — the tree brings its own).
-2. From this repo's root, assemble and push the clean tree (fresh history —
-   do NOT push this repo's history; old commits contain unaudited docx
-   screenshots):
-   copy `Code.js`, `appsscript.json`, `CHANGELOG.md`, `.gitignore`,
-   `.claspignore`, `public-dashboard/`, `playbook/`, `affiliate/` to a fresh
-   folder; add `starter-kit/public-repo-README.md` as its `README.md` and
-   `starter-kit/LICENSE.md` as its `LICENSE.md`; then
-   `git init -b main && git add -A && git commit && git remote add origin … && git push -u origin main`.
-3. Add `starter-kit/volunteer-docs/` and the Launch Guide once the Phase 4
-   screenshot audit clears them.
+Syncing changes from this repo to the public one: copy the changed files over
+a clone of the public repo and commit there (the tree mapping is: root code
+files + `public-dashboard/` + `playbook/` + `affiliate/` copied as-is;
+`starter-kit/public-repo-README.md` → its `README.md`;
+`starter-kit/LICENSE.md` → its `LICENSE.md`;
+`starter-kit/drive-folder-manifest.md` → its `starter-kit/`).
+
+Still to add there: `starter-kit/volunteer-docs/` and the Launch Guide, once
+the Phase 4 screenshot audit clears them.
 
 The church-facing front door. This file records what belongs in the shared
 Google Drive folder, its sharing settings, and the IDs the founder must track.
