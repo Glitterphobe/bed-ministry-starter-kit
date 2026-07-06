@@ -1,0 +1,22 @@
+# Sensitive ministry data — contains PII (names, addresses, phones, children's
+# ages). NEVER commit. The workbook lives in Google Drive; this repo is code only.
+*.xlsx
+*.xls
+*.csv
+
+# clasp / Google Apps Script CLI
+.clasprc.json
+.clasp.json
+
+# Node (if using clasp locally)
+node_modules/
+package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+*.swp

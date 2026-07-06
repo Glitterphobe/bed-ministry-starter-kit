@@ -1,0 +1,7 @@
+# Safety allowlist for `clasp push` to the BOUND Bed Ministry script.
+# Only the two files below are ever pushed to the live project. Everything
+# else — the separate public-dashboard project, the .txt export, the data
+# workbook, node_modules — is excluded so it can never clobber the live script.
+**/**
+!appsscript.json
+!Code.js
