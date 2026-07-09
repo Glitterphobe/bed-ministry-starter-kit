@@ -6,10 +6,14 @@ change for a workbook that doesn't opt in (all new config defaults to current
 behavior; San Antonio remains on v3.5 until it chooses to upgrade).
 
 **Form automation (kills the #1 replication fragility):**
-- `FORM_SCHEMA` — the exact 46-question request-form schema, captured from the
-  live response-sheet headers. Question types/choices are provisional until
-  verified against the live form with "Dump live form schema to log" (run on a
-  private COPY of the live workbook — never the live one).
+- `FORM_SCHEMA` — the exact 46-question request-form schema, reconciled against
+  the live San Antonio form (captured via "Dump live form schema to log" on a
+  private copy) and then genericized: SA-specific help text (a ministry email,
+  a local area code) replaced with neutral wording. Carries page structure,
+  help text, required flags, and the per-child "No → skip to Caregiver"
+  navigation. The 7 "Need to enter another child?" items intentionally share
+  one identical title (matching how Google builds the form); the response sheet
+  is what disambiguates them as "… 2", "… 3".
 - Setup > "★ Create & link Bed Request Form" (`setupForm`) builds the Google
   Form from `FORM_SCHEMA` — including the per-child page flow ("Need to enter
   another child?" No → jump to Contact & Delivery) — and links it to the

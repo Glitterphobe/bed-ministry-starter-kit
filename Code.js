@@ -310,76 +310,100 @@ const V3_CONSTRUCTED_FRAME_PARTS = [
 //  compares the live form against it so a renamed question is caught before
 //  it silently drops a field.
 //
-//  PROVISIONAL question types/choices were derived from the response-sheet
-//  headers plus onFormSubmit's parsing; titles are exact. To re-capture from
-//  a live form, run Setup > "Dump live form schema to log" on a COPY of the
-//  workbook and reconcile any differences here.
+//  Reconciled 2026-07-06 against the live San Antonio form (via
+//  logLiveFormSchema on a private copy), then genericized: San-Antonio-specific
+//  help text (a ministry email, a local area code) was replaced with neutral
+//  wording so the generated form carries no instance data.
 //
 //  Item fields:
 //    title    — exact question title (matched by onFormSubmit via normKey)
 //    type     — TEXT | DATE | MC (multiple choice) | PARAGRAPH | PAGE
 //    choices  — MC options
+//    helpText — optional italic hint under the question
+//    required — optional; marks the field required on the generated form
 //    bedType  — bed-count questions only; dropped when that bed type is
 //               disabled in Ministry Options
-//    nav      — MC child-flow control: {yes:"NEXT", no:"CONTACT"} sends
-//               "No" straight to the contact page
-//    pageId   — PAGE items only; nav targets reference these
+//    nav      — MC child-flow control: { no: "<pageId>" } routes a "No"
+//               answer straight to that page (skipping the rest of the
+//               children); "Yes" continues to the next page
+//    pageId   — PAGE items only; nav `no` targets reference these
+//
+//  IMPORTANT: every "Need to enter another child?" item has the IDENTICAL
+//  title — that's how the live form is built. (The response SHEET disambiguates
+//  the columns as "... 2", "... 3"; the FORM items do not.) onFormSubmit never
+//  reads these — they are pure navigation — so duplicate titles are harmless,
+//  and keeping them identical is what stops verifyFormSchema_ from crying
+//  "renamed question" on a real form.
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Child pages 2–8 follow one repeating shape; build them programmatically so
+// the schema stays readable and the titles can't drift out of sync.
+function v3BuildChildPages_() {
+  const items = [];
+  for (let n = 2; n <= 8; n++) {
+    const page = { type: "PAGE", title: "Child " + n };
+    if (n === 8) page.helpText = "If there are more than 8 children, reach out to your ministry lead.";
+    items.push(page);
+    items.push({ title: "Child " + n + " Age",    type: "TEXT" });
+    items.push({ title: "Child " + n + " Gender",  type: "MC", choices: ["M", "F"] });
+    // No "Need to enter another child?" after Child 8 — the form flows straight
+    // to Caregiver Information from there.
+    if (n < 8) {
+      items.push({ title: "Need to enter another child?", type: "MC",
+                   choices: ["Yes", "No"], nav: { no: "CAREGIVER" } });
+    }
+  }
+  return items;
+}
+
 const FORM_SCHEMA = [
-  { title: "Date of Request",                                     type: "DATE" },
-  { title: "Tracking Number (Care Portal/APN#)",                  type: "TEXT" },
-  { title: "How Many Twin Beds?",                                 type: "TEXT", bedType: "Twin" },
-  { title: "How Many Bunk Beds? (1 bunk = top and bottom bed)",   type: "TEXT", bedType: "Bunk" },
-  { title: "How many Toddler Beds?",                              type: "TEXT", bedType: "Toddler" },
-  { title: "How many Cribs?",                                     type: "TEXT", bedType: "Crib" },
-  { title: "How many Children need beds?",                        type: "TEXT" },
-  { title: "Child 1 Age",                                         type: "TEXT" },
-  { title: "Child 1 Gender",                                      type: "MC", choices: ["M", "F"] },
-  { title: "Need to enter another child?",                        type: "MC", choices: ["Yes", "No"], nav: { yes: "NEXT", no: "CONTACT" } },
-  { type: "PAGE", pageId: "CHILD2", title: "Child 2" },
-  { title: "Child 2 Age",                                         type: "TEXT" },
-  { title: "Child 2 Gender",                                      type: "MC", choices: ["M", "F"] },
-  { title: "Need to enter another child? 2",                      type: "MC", choices: ["Yes", "No"], nav: { yes: "NEXT", no: "CONTACT" } },
-  { type: "PAGE", pageId: "CHILD3", title: "Child 3" },
-  { title: "Child 3 Age",                                         type: "TEXT" },
-  { title: "Child 3 Gender",                                      type: "MC", choices: ["M", "F"] },
-  { title: "Need to enter another child? 3",                      type: "MC", choices: ["Yes", "No"], nav: { yes: "NEXT", no: "CONTACT" } },
-  { type: "PAGE", pageId: "CHILD4", title: "Child 4" },
-  { title: "Child 4 Age",                                         type: "TEXT" },
-  { title: "Child 4 Gender",                                      type: "MC", choices: ["M", "F"] },
-  { title: "Need to enter another child? 4",                      type: "MC", choices: ["Yes", "No"], nav: { yes: "NEXT", no: "CONTACT" } },
-  { type: "PAGE", pageId: "CHILD5", title: "Child 5" },
-  { title: "Child 5 Age",                                         type: "TEXT" },
-  { title: "Child 5 Gender",                                      type: "MC", choices: ["M", "F"] },
-  { title: "Need to enter another child? 5",                      type: "MC", choices: ["Yes", "No"], nav: { yes: "NEXT", no: "CONTACT" } },
-  { type: "PAGE", pageId: "CHILD6", title: "Child 6" },
-  { title: "Child 6 Age",                                         type: "TEXT" },
-  { title: "Child 6 Gender",                                      type: "MC", choices: ["M", "F"] },
-  { title: "Need to enter another child? 6",                      type: "MC", choices: ["Yes", "No"], nav: { yes: "NEXT", no: "CONTACT" } },
-  { type: "PAGE", pageId: "CHILD7", title: "Child 7" },
-  { title: "Child 7 Age",                                         type: "TEXT" },
-  { title: "Child 7 Gender",                                      type: "MC", choices: ["M", "F"] },
-  { title: "Need to enter another child? 7",                      type: "MC", choices: ["Yes", "No"], nav: { yes: "NEXT", no: "CONTACT" } },
-  { type: "PAGE", pageId: "CHILD8", title: "Child 8" },
-  { title: "Child 8 Age",                                         type: "TEXT" },
-  { title: "Child 8 Gender",                                      type: "MC", choices: ["M", "F"] },
-  { type: "PAGE", pageId: "CONTACT", title: "Contact & Delivery" },
-  { title: "Caregiver Name (First and Last)",                     type: "TEXT" },
-  { title: "Caregiver Phone",                                     type: "TEXT" },
-  { title: "Case Worker Name",                                    type: "TEXT" },
-  { title: "Case Worker Phone",                                   type: "TEXT" },
-  { title: "Complex/Building Name",                               type: "TEXT" },
-  { title: "Street Address",                                      type: "TEXT" },
-  { title: "Apt/Unit #",                                          type: "TEXT" },
-  { title: "Floor #",                                             type: "TEXT" },
-  { title: "City",                                                type: "TEXT" },
-  { title: "ZIP Code",                                            type: "TEXT" },
-  { title: "Gate Code",                                           type: "TEXT" },
-  { title: "Do you have a Delivery Team assigned already?",       type: "MC", choices: ["Yes", "No"] },
+  { type: "PAGE", title: "Request Information" },
+  { title: "Date of Request",                                     type: "DATE", required: true },
+  { title: "Tracking Number (Care Portal/APN#)",                  type: "TEXT", required: true },
+
+  { type: "PAGE", title: "Beds Needed" },
+  { title: "How Many Twin Beds?",                                 type: "TEXT", required: true, bedType: "Twin" },
+  { title: "How Many Bunk Beds? (1 bunk = top and bottom bed)",   type: "TEXT", required: true, bedType: "Bunk" },
+  { title: "How many Toddler Beds?",                              type: "TEXT", required: true, bedType: "Toddler" },
+  { title: "How many Cribs?",                                     type: "TEXT", required: true, bedType: "Crib" },
+
+  { type: "PAGE", title: "Children" },
+  { title: "How many Children need beds?", type: "MC", required: true,
+    choices: ["1", "2", "3", "4", "5", "6", "7", "8"],
+    helpText: "If your request is for more than 8 children, contact your ministry lead." },
+
+  { type: "PAGE", title: "Child 1" },
+  { title: "Child 1 Age",                                         type: "TEXT", required: true },
+  { title: "Child 1 Gender",                                      type: "MC", choices: ["M", "F"], required: true },
+  { title: "Need to enter another child?",                        type: "MC", choices: ["Yes", "No"], required: true, nav: { no: "CAREGIVER" } },
+
+  // Child pages 2–8 (see v3BuildChildPages_)
+  ...v3BuildChildPages_(),
+
+  { type: "PAGE", pageId: "CAREGIVER", title: "Caregiver Information" },
+  { title: "Caregiver Name (First and Last)",                     type: "TEXT", required: true },
+  { title: "Caregiver Phone",                                     type: "TEXT", required: true, helpText: "Format guidance:  (555)-555-1234" },
+
+  { type: "PAGE", title: "Case Worker Information" },
+  { title: "Case Worker Name",                                    type: "TEXT", required: true, helpText: "Full name of the referring case worker." },
+  { title: "Case Worker Phone",                                   type: "TEXT", required: true, helpText: "Format guidance:  (555)-555-1234" },
+
+  { type: "PAGE", title: "Delivery Address" },
+  { title: "Complex/Building Name",                               type: "TEXT", helpText: "If an apartment complex, include the complex name and building number (if applicable) here." },
+  { title: "Street Address",                                      type: "TEXT", required: true, helpText: "Street number and name only, no city or ZIP" },
+  { title: "Apt/Unit #",                                          type: "TEXT", helpText: "e.g. Apt 204 or #1103" },
+  { title: "Floor #",                                             type: "TEXT", helpText: "Ground floor = 1" },
+  { title: "City",                                                type: "TEXT", required: true },
+  { title: "ZIP Code",                                            type: "TEXT", required: true, helpText: "5-digit ZIP. Used for delivery team routing." },
+  { title: "Gate Code",                                           type: "TEXT", helpText: "If the complex or neighborhood is gated, please provide a gate code for the delivery team." },
+  { title: "Do you have a Delivery Team assigned already?",       type: "MC", choices: ["Yes", "No"], required: true, helpText: "Some referrals arrive with a delivery team already assigned." },
+
+  { type: "PAGE", title: "Delivery Team", helpText: "Information about the delivery team, if already available." },
   { title: "Delivery Contact Name",                               type: "TEXT" },
-  { title: "Delivery Contact Phone",                              type: "TEXT" },
+  { title: "Delivery Contact Phone",                              type: "TEXT", helpText: "Format guidance:  (555)-555-1234" },
   { title: "Delivery Organization",                               type: "TEXT" },
+
+  { type: "PAGE", title: "Additional Info", helpText: "Capture any relevant information here that hasn't been included in the responses so far." },
   { title: "Notes",                                               type: "PARAGRAPH" },
 ];
 
@@ -3777,28 +3801,33 @@ function buildFormFromSchema_(ss) {
 
   FORM_SCHEMA.forEach(q => {
     if (q.type === "PAGE") {
-      pageBreaks[q.pageId] = form.addPageBreakItem().setTitle(q.title);
+      const pb = form.addPageBreakItem().setTitle(q.title);
+      if (q.helpText) pb.setHelpText(q.helpText);
+      if (q.pageId) pageBreaks[q.pageId] = pb;   // only nav targets are keyed
       return;
     }
     if (q.bedType) {
       const opt = MINISTRY_OPTIONS.find(o => o.bedType === q.bedType);
       if (opt && !opts[opt.key]) return;   // bed type disabled → drop question
     }
+    let item;
     if (q.type === "DATE") {
-      form.addDateItem().setTitle(q.title);
+      item = form.addDateItem().setTitle(q.title);
     } else if (q.type === "PARAGRAPH") {
-      form.addParagraphTextItem().setTitle(q.title);
+      item = form.addParagraphTextItem().setTitle(q.title);
     } else if (q.type === "MC") {
-      const item = form.addMultipleChoiceItem().setTitle(q.title);
-      if (q.nav) navItems.push({ item: item, nav: q.nav });
+      item = form.addMultipleChoiceItem().setTitle(q.title);
+      if (q.nav) navItems.push({ item: item, nav: q.nav });   // choices set below
       else item.setChoiceValues(q.choices || []);
     } else {
-      form.addTextItem().setTitle(q.title);
+      item = form.addTextItem().setTitle(q.title);
     }
+    if (q.helpText) item.setHelpText(q.helpText);
+    if (q.required) item.setRequired(true);
   });
 
-  // Wire up the child-flow navigation now that the CONTACT page break exists:
-  // "Yes" continues to the next child page, "No" jumps to Contact & Delivery.
+  // Wire up the child-flow navigation now that the CAREGIVER page break exists:
+  // "Yes" continues to the next child page, "No" jumps to Caregiver Information.
   navItems.forEach(({ item, nav }) => {
     const target = pageBreaks[nav.no];
     item.setChoices([
