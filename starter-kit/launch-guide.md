@@ -63,10 +63,11 @@ don't see it, wait a few seconds and refresh the browser tab.)
 
    ![Google hasn't verified this app warning](launch-screenshots/01-unverified-app.png)
 
-   Click **Advanced** (bottom-left), then the **Go to Bed Ministry Workbook
-   TEMPLATE (unsafe)** link that appears. (It still says "TEMPLATE" even
-   though you renamed your copy — that's just the internal script name, and
-   it's harmless.)
+   Click **Advanced** (bottom-left), then the **Go to Bed Ministry System
+   (unsafe)** link that appears. ("Bed Ministry System" is the name of the
+   underlying script — it's the same for every copy. The screenshots below
+   were taken before it was named and show "Bed Ministry Workbook TEMPLATE"
+   in that spot; yours will say "Bed Ministry System.")
 
    ![Advanced expanded showing the Go to … unsafe link](launch-screenshots/02-advanced-unsafe-link.png)
 
